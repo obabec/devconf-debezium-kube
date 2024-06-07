@@ -1,0 +1,35 @@
+---
+apiVersion: debezium.io/v1alpha1
+kind: DebeziumServer
+metadata:
+  name: devconf-server
+spec:
+  image: quay.io/debezium/server:2.7.0.Beta1
+  runtime:
+    metrics:
+      jmxExporter:
+        enabled: true
+  quarkus:
+    config:
+      log.console.json: false
+      kubernetes-config.enabled: true
+      kubernetes-config.secrets: postgresql-credentials
+  sink:
+    type: kafka
+    config:
+      producer.bootstrap.servers: dbz-kafka-kafka-bootstrap:9092
+      producer.key.serializer: org.apache.kafka.common.serialization.StringSerializer
+      producer.value.serializer: org.apache.kafka.common.serialization.StringSerializer
+  source:
+    class: io.debezium.connector.postgresql.PostgresConnector
+    offset:
+      memory: { }
+    schemaHistory:
+      memory: { }
+    config:
+      database.hostname: postgresql
+      database.port: 5432
+      database.user: ${POSTGRES_USER}
+      database.password: ${POSTGRES_PASSWORD}
+      database.dbname: ${POSTGRES_DB}
+      topic.prefix: coincap
